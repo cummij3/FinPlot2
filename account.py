@@ -11,6 +11,13 @@ class Account():
 		self.fields = ['ending balance', 'contribution']
 		self.tags = list()
 
+	def __repr__(self):
+		return self.name
+
+	def get_name(self):
+		""" get name """
+		return self.name
+
 	def add_data(self, date, val_dict):
 		"""
 		add data
