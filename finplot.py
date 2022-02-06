@@ -10,6 +10,7 @@ import os
 import account
 import json
 import matplotlib.pyplot as plt
+import time
 
 
 
@@ -18,16 +19,19 @@ class FinPlot():
 
 		os.system('clear')	# use 'cls' for windows
 		self.accounts = []
+		self.dashes = '-'*50
 
 		if file:
 			self.import_data(file)
+		else:
+			file = self.load_file_ui()
 
 		self.landing_page()
 
 
 	def landing_page(self):
 		""" first page seen """
-		print('-'*50)
+		print(self.dashes)
 		print('What would you like to do?\n')
 		choice_dict = {
 					'Import Data': self.import_data,
@@ -39,9 +43,35 @@ class FinPlot():
 
 		self.function_user_interface(choice_dict)
 
+	def load_file_ui(self):
+		""" load file or start with blank file """
+		print(self.dashes)
+		print('Woulld you like to import data from a file?')
+		choice_list = ['Yes', 'No']
+		for idx, choice in enumerate(choice_list):
+			print(f'[{idx}] {choice}')
+		choice = int(input('\nUser input: '))
+		if choice == 0:
+			print('You chose "Yes"')
+			file = filedialog.askopenfilename()
+		elif choice == 1:
+			print('You chose "No"')
+			file = None
+		else:
+			print('invalid choice')
+			time.sleep(2)
+			self.load_file_ui()
+		time.sleep(2)
+		os.system('clear')
+
+		return file
 
 	def function_user_interface(self, choice_dict):
-		""" build the user interface """
+		"""
+		build the user interface
+
+		choice dict: {choice1: function1, ...}
+		"""
 		choice_list = list()
 		[choice_list.append(key) for key in choice_dict]
 		valid_choices = range(len(choice_list))
@@ -125,4 +155,5 @@ class FinPlot():
 if __name__ == '__main__':
 	#file_path = filedialog.askopenfilename()
 	#finplot(file_path)
-	FinPlot('C:/Users/Jed/Downloads/json_data - Copy.json')
+	#FinPlot('C:/Users/Jed/Downloads/json_data - Copy.json')
+	FinPlot()
