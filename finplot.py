@@ -11,10 +11,11 @@ import account
 import json
 import matplotlib.pyplot as plt
 import time
+import datetime
 
 
 
-class FinPlot():
+class FinPlotUI():
 	def __init__(self, file=None):
 
 		os.system('clear')	# use 'cls' for windows
@@ -25,8 +26,7 @@ class FinPlot():
 			self.import_data(file)
 		else:
 			file = self.load_file_ui()
-
-		self.landing_page()
+			self.landing_page()
 
 
 	def landing_page(self):
@@ -46,7 +46,7 @@ class FinPlot():
 	def load_file_ui(self):
 		""" load file or start with blank file """
 		print(self.dashes)
-		print('Woulld you like to import data from a file?')
+		print('Woulld you like to import data from a file?\n')
 		choice_list = ['Yes', 'No']
 		for idx, choice in enumerate(choice_list):
 			print(f'[{idx}] {choice}')
@@ -120,31 +120,41 @@ class FinPlot():
 					for date in data[acc_name][key]:
 						temp_account.add_data(date, data[acc_name][key][date])
 
+		print('Data imported from: ', file_path)
+		time.sleep(2)
+		self.landing_page()
+
 	def plot_data(self):
 		""" plot data from accounts """
 		choice_list = []
 		for account in self.accounts:
 			choice_list.append(account.get_name())
 
-		account_name = self.choice_user_interface(choice_list)
+		choice = self.choice_user_interface(choice_list)
+		account_name = choice_list[choice]
+		print('That account is: ', account_name)
 
 		for val in self.accounts:
 			if account_name == val.get_name():
 				account = val
 				break
 
+		print('That account is: ', account)
+
 		data = account.get_data()
 		print(data)
 		x_vals, z_vals= [], []
 		for date in data:
-			x_vals.append(date)
-			z_vals.append(data[date]['Ending Balance'])
+			x_vals.append(datetime.datetime.strptime(date, '%Y%m%d'))
+			z_vals.append(float(data[date]['Ending Balance']))
 			print(date, data[date]['Ending Balance'])
 
 
 		# red dashes, blue squares and green triangles
 		plt.plot(x_vals, z_vals)
 		plt.show()
+
+		self.landing_page()
 
 
 	def exit_program(self):
@@ -154,6 +164,7 @@ class FinPlot():
 
 if __name__ == '__main__':
 	#file_path = filedialog.askopenfilename()
-	#finplot(file_path)
-	#FinPlot('C:/Users/Jed/Downloads/json_data - Copy.json')
-	FinPlot()
+	#finplotUI(file_path)
+	#FinPlotUI('C:/Users/Jed/Downloads/json_data - Copy.json')
+	FinPlotUI('C:/Users/Jed/Downloads/json_data.json')
+	#FinPlotUI()
