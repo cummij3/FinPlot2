@@ -144,14 +144,27 @@ class FinPlotUI():
 		data = account.get_data()
 		print(data)
 		x_vals, z_vals= [], []
+		plot_data = {}
 		for date in data:
-			x_vals.append(datetime.datetime.strptime(date, '%Y%m%d'))
-			z_vals.append(float(data[date]['Ending Balance']))
-			print(date, data[date]['Ending Balance'])
+			for prop in data[date]:
+				if prop not in plot_data:
+					plot_data[prop] = [[], []]
+				print(datetime.datetime.strptime(date, '%Y%m%d'), data[date][prop])
+				plot_data[prop][0].append(datetime.datetime.strptime(date, '%Y%m%d'))
+				plot_data[prop][1].append(float(data[date][prop]))
+
+			#x_vals.append(datetime.datetime.strptime(date, '%Y%m%d'))
+			#z_vals.append(float(data[date]['Ending Balance']))
+			#print(date, data[date]['Ending Balance'])
 
 
 		# red dashes, blue squares and green triangles
-		plt.plot(x_vals, z_vals)
+		for prop in plot_data:
+			plt.plot(plot_data[prop][0], plot_data[prop][1], label=prop)
+		plt.legend()
+		plt.title(account_name)
+		plt.xlabel('Date')
+		plt.ylabel('$')
 		plt.show()
 
 		self.landing_page()
