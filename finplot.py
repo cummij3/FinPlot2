@@ -21,6 +21,9 @@ class FinPlotUI():
 		os.system('clear')	# use 'cls' for windows
 		self.accounts = []
 		self.dashes = '-'*50
+		self.save_path = os.path.join(os.path.expanduser("~"), 'finplot_data')
+		if not os.path.exists(self.save_path):
+			os.makedirs(os.path.abspath(self.save_path))
 
 		if file:
 			self.import_data(file)
@@ -36,8 +39,8 @@ class FinPlotUI():
 		choice_dict = {
 					'Import Data': self.import_data,
 					'Input Data': self.exit_program,
-					'Plot Data': self.plot_data,
-					'Save Data': self.exit_program,
+					'Plot Data': self.plot_account_data,
+					'Save Data': self.save_data,
 					'Exit': self.exit_program
 					}
 
@@ -106,6 +109,7 @@ class FinPlotUI():
 		with open(file_path) as file:
 			data = json.load(file)
 
+		self.accounts = []
 		for acc_name in data:
 			temp_account = account.Account(acc_name)
 			self.accounts.append(temp_account)
@@ -124,7 +128,18 @@ class FinPlotUI():
 		time.sleep(2)
 		self.landing_page()
 
-	def plot_data(self):
+	##########################################################################
+	def save_data(self):
+		""" save data to json """
+		acc_dict = {}
+		for acc in self.accounts:
+			acc_dict[acc.get_name()] = acc.__dict__
+		json_str = json.dumps(acc_dict, indent=4)
+		now_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + '.json'
+		with open(os.path.join(self.save_path, now_str), 'w') as outfile:
+			outfile.write(json_str)
+
+	def plot_account_data(self):
 		""" plot data from accounts """
 		choice_list = []
 		for account in self.accounts:
@@ -179,5 +194,5 @@ if __name__ == '__main__':
 	#file_path = filedialog.askopenfilename()
 	#finplotUI(file_path)
 	#FinPlotUI('C:/Users/Jed/Downloads/json_data - Copy.json')
-	FinPlotUI('C:/Users/Jed/Downloads/json_data.json')
+	FinPlotUI('C:/Users/cummi/Downloads/json_data.json')
 	#FinPlotUI()
