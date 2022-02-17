@@ -38,7 +38,7 @@ class FinPlotUI():
 		print('What would you like to do?\n')
 		choice_dict = {
 					'Import Data': self.import_data,
-					'Input Data': self.exit_program,
+					'Input Data': self.input_data,
 					'Plot Data': self.plot_account_data,
 					'Save Data': self.save_data,
 					'Exit': self.exit_program
@@ -128,7 +128,30 @@ class FinPlotUI():
 		time.sleep(2)
 		self.landing_page()
 
-	##########################################################################
+	###########################################################################
+	def input_data(self):
+		""" input data """
+		choice_list = []
+		for acc in self.accounts:
+			choice_list.append(acc)
+		account = choice_list[self.choice_user_interface(choice_list)]
+
+		print('\nAccount Fields:')
+		for field in account.get_fields():
+			print(field)
+		
+		print('\nData Input:')
+		date = input('Date: ')
+		input_data = {}
+		for field in account.get_fields():
+			input_data[field] = float(input(f'{field}: '))
+
+		print(input_data)
+		account.add_data(date, input_data)
+
+		self.landing_page()
+
+
 	def save_data(self):
 		""" save data to json """
 		acc_dict = {}
