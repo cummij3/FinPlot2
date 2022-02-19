@@ -141,15 +141,46 @@ class FinPlotUI():
 			print(field)
 		
 		print('\nData Input:')
-		date = input('Date: ')
+		date = input('\nDate: ')
+		if not self.is_date_valid(date):
+			time.sleep(2)
+			self.input_data()
+			return
 		input_data = {}
 		for field in account.get_fields():
 			input_data[field] = float(input(f'{field}: '))
+			if not self.is_data_valid(input_data[field]):
+				time.sleep(2)
+				self.input_data()
+				return
+			account.add_data(date, input_data)
 
 		print(input_data)
-		account.add_data(date, input_data)
 
 		self.landing_page()
+
+	def is_date_valid(self, date):
+		""" check in date input is valid """
+		ret_val = True
+		
+		if len(date) != 8:
+			ret_val = False
+			print('Invalid Date: ', date)
+		elif not date.isnumeric():
+			ret_val = False
+			print('Invalid Date: ', date)
+				
+		return ret_val
+
+	def is_data_valid(self, data):
+		""" check if data is valid """
+		ret_val = True
+		if data == '':
+			ret_val = False
+			print('Invalid data: ', data)
+
+		return ret_val
+
 
 
 	def save_data(self):
