@@ -34,6 +34,10 @@ class Account():
 		""" add feild """
 		self.fields.append(str(feild_name))
 
+	def remove_field(self, field_name):
+		""" remove field """
+		self.fields.remove(field_name)
+
 	def get_fields(self):
 		""" return fields """
 		return self.fields

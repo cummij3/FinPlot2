@@ -22,15 +22,27 @@ class FinPlotUI():
 		self.accounts = []
 		self.dashes = '-'*50
 		self.save_path = os.path.join(os.path.expanduser("~"), 'finplot_data')
+		os.chdir(self.save_path)
 		if not os.path.exists(self.save_path):
 			os.makedirs(os.path.abspath(self.save_path))
 
 		if file:
 			self.import_data(file)
 		else:
-			file = self.load_file_ui()
-			self.landing_page()
+			files = os.listdir()
+			latest_filename = '00000000'
+			for filename in files:
+				if int(filename[0:8]) > int(latest_filename[0:8]):
+					latest_filename = filename
 
+		if latest_filename != '00000000':
+			self.import_data(latest_filename)
+		else:
+			filename = self.load_file_ui()
+			if filename:
+				self.import_data(filename)
+
+		self.landing_page()
 
 	def landing_page(self):
 		""" first page seen """
@@ -39,6 +51,8 @@ class FinPlotUI():
 		choice_dict = {
 					'Import Data': self.import_data,
 					'Input Data': self.input_data,
+					'Create Account': self.create_account,
+					'Edit Account': self.edit_account,
 					'Plot Data': self.plot_account_data,
 					'Save Data': self.save_data,
 					'Exit': self.exit_program
@@ -49,7 +63,7 @@ class FinPlotUI():
 	def load_file_ui(self):
 		""" load file or start with blank file """
 		print(self.dashes)
-		print('Woulld you like to import data from a file?\n')
+		print('Would you like to import data from a file?\n')
 		choice_list = ['Yes', 'No']
 		for idx, choice in enumerate(choice_list):
 			print(f'[{idx}] {choice}')
@@ -126,9 +140,69 @@ class FinPlotUI():
 
 		print('Data imported from: ', file_path)
 		time.sleep(2)
-		self.landing_page()
 
 	###########################################################################
+	def create_account(self):
+		""" create account """
+		print('\nCreate Account\n')
+		self.accounts.append(account.Account(input('Input account name: ')))
+		self.landing_page()
+
+	def edit_account(self, account=None):
+		""" edit account """
+		if not account:
+			account = self.choose_account()
+		choice_list = [
+					'Add Field',
+					'Remove Field',
+					'Delete Account',
+					'Go Back'
+					]
+
+		choice = self.choice_user_interface(choice_list)
+
+		if choice == choice_list.index('Add Field'):
+			self.add_account_field(account)
+			self.edit_account(account)
+		elif choice == choice_list.index('Remove Field'):
+			self.remove_account_field(account)
+			self.edit_account(account)
+		elif choice == choice_list.index('Delete Account'):
+			self.delete_account(account)
+			self.edit_account(account)
+		elif choice == choice_list.index('Go Back'):
+			self.landing_page()
+		else:
+			print('Invalid input')
+			self.edit_account(account)
+			self.landing_page()
+
+	def add_account_field(self, account):
+		""" add account field """
+		account.add_field(input('Input Field Name: '))
+
+	def remove_account_field(self, account):
+		""" remove account field """
+		account.remove_field(input('Input Field Nane: '))
+
+	def delete_account(self, account):
+		""" delete account """
+		print(f'Are you sure that you want to delete {account.get_name()}?\n')
+		choice_list = ['Yes', 'No']
+		for idx, choice in enumerate(choice_list):
+			print(f'[{idx}] {choice}')
+		choice = int(input('\nUser input: '))
+		if choice == 0:
+			print('You chose "Yes"')
+			self.accounts.remove(account)
+		elif choice == 1:
+			print('You chose "No"')
+		else:
+			print('invalid choice')
+			time.sleep(2)
+			self.delete_account(account)
+
+
 	def input_data(self):
 		""" input data """
 		choice_list = []
@@ -139,7 +213,7 @@ class FinPlotUI():
 		print('\nAccount Fields:')
 		for field in account.get_fields():
 			print(field)
-		
+
 		print('\nData Input:')
 		date = input('\nDate: ')
 		if not self.is_date_valid(date):
@@ -162,14 +236,14 @@ class FinPlotUI():
 	def is_date_valid(self, date):
 		""" check in date input is valid """
 		ret_val = True
-		
+
 		if len(date) != 8:
 			ret_val = False
 			print('Invalid Date: ', date)
 		elif not date.isnumeric():
 			ret_val = False
 			print('Invalid Date: ', date)
-				
+
 		return ret_val
 
 	def is_data_valid(self, data):
@@ -181,8 +255,6 @@ class FinPlotUI():
 
 		return ret_val
 
-
-
 	def save_data(self):
 		""" save data to json """
 		acc_dict = {}
@@ -193,8 +265,8 @@ class FinPlotUI():
 		with open(os.path.join(self.save_path, now_str), 'w') as outfile:
 			outfile.write(json_str)
 
-	def plot_account_data(self):
-		""" plot data from accounts """
+	def choose_account(self):
+		""" choose account from accounts """
 		choice_list = []
 		for account in self.accounts:
 			choice_list.append(account.get_name())
@@ -208,8 +280,11 @@ class FinPlotUI():
 				account = val
 				break
 
-		print('That account is: ', account)
+		return account
 
+	def plot_account_data(self):
+		""" plot data from accounts """
+		account = self.choose_account()
 		data = account.get_data()
 		print(data)
 		x_vals, z_vals= [], []
@@ -231,7 +306,7 @@ class FinPlotUI():
 		for prop in plot_data:
 			plt.plot(plot_data[prop][0], plot_data[prop][1], label=prop)
 		plt.legend()
-		plt.title(account_name)
+		plt.title(account.get_name())
 		plt.xlabel('Date')
 		plt.ylabel('$')
 		plt.show()
@@ -248,5 +323,5 @@ if __name__ == '__main__':
 	#file_path = filedialog.askopenfilename()
 	#finplotUI(file_path)
 	#FinPlotUI('C:/Users/Jed/Downloads/json_data - Copy.json')
-	FinPlotUI('C:/Users/cummi/Downloads/json_data.json')
-	#FinPlotUI()
+	#FinPlotUI('C:/Users/cummi/Downloads/json_data.json')
+	FinPlotUI()
