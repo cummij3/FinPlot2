@@ -12,6 +12,7 @@ import json
 import matplotlib.pyplot as plt
 import time
 import datetime
+import finplot_util as fpu
 
 
 
@@ -49,7 +50,7 @@ class FinPlotUI():
 		print(self.dashes)
 		print('What would you like to do?\n')
 		choice_dict = {
-					'Import Data': self.import_data,
+					'Import Data': self.import_data_redirect,
 					'Input Data': self.input_data,
 					'Create Account': self.create_account,
 					'Edit Account': self.edit_account,
@@ -58,7 +59,41 @@ class FinPlotUI():
 					'Exit': self.exit_program
 					}
 
-		self.function_user_interface(choice_dict)
+		fpu.function_user_interface(choice_dict)
+
+	def import_data_redirect(self, file_path=None):
+		""" The function runs import data then redirects to the landing page """
+		self.import_data(file_path)
+		self.landing_page()
+
+	def import_data(self, file_path=None):
+		""" import data from json """
+		try:
+			if file_path is None:
+				file_path = filedialog.askopenfilename()
+			with open(file_path) as file:
+				data = json.load(file)
+
+			self.accounts = []
+			for acc_name in data:
+				temp_account = account.Account(acc_name)
+				self.accounts.append(temp_account)
+				for key in data[acc_name]:
+					if key == 'tags':
+						for tag in data[acc_name][key]:
+							temp_account.add_tag(tag)
+					if key == 'properties':
+						for field in data[acc_name][key]:
+							temp_account.add_field(field)
+					if key == 'data':
+						for date in data[acc_name][key]:
+							temp_account.add_data(date, data[acc_name][key][date])
+
+			print('Data imported from: ', file_path)
+			time.sleep(2)
+			
+		except:
+			print('Error in import_data')
 
 	def load_file_ui(self):
 		""" load file or start with blank file """
@@ -83,98 +118,72 @@ class FinPlotUI():
 
 		return file
 
-	def function_user_interface(self, choice_dict):
-		"""
-		build the user interface
-
-		choice dict: {choice1: function1, ...}
-		"""
-		choice_list = list()
-		[choice_list.append(key) for key in choice_dict]
-		valid_choices = range(len(choice_list))
-		for idx, val in enumerate(choice_list):
-			print(f'[{idx}] {val}')
-		choice = int(input('\nUser input: '))
-		if choice in valid_choices:
-			print('\nyou chose: ', choice_list[choice])
-			choice_dict[choice_list[choice]]()
-		else:
-			print("\nInvalid input. Try again")
-			self.function_user_interface(choice_dict)
-
 	def choice_user_interface(self, choice_list):
 		""" build the user interface """
-		valid_choices = range(len(choice_list))
-		for idx, val in enumerate(choice_list):
-			print(f'[{idx}] {val}')
-		choice = int(input('\nUser input: '))
-		if choice in valid_choices:
-			print('\nyou chose: ', choice_list[choice])
-		else:
-			print("\nInvalid input. Try again")
-			self.choice_user_interface(choice_list)
+		try:
+			valid_choices = range(len(choice_list))
+			for idx, val in enumerate(choice_list):
+				print(f'[{idx}] {val}')
+			choice = int(input('\nUser input: '))
+			if choice in valid_choices:
+				print('\nyou chose: ', choice_list[choice])
+			else:
+				print("\nInvalid input. Try again")
+				self.choice_user_interface(choice_list)
 
-		return choice
+			return choice
+		except:
+			print('something weird happened')
+			return None
 
-	def import_data(self, file_path=None):
-		""" import data from json """
-		if file_path is None:
-			file_path = filedialog.askopenfilename()
-		with open(file_path) as file:
-			data = json.load(file)
 
-		self.accounts = []
-		for acc_name in data:
-			temp_account = account.Account(acc_name)
-			self.accounts.append(temp_account)
-			for key in data[acc_name]:
-				if key == 'tags':
-					for tag in data[acc_name][key]:
-						temp_account.add_tag(tag)
-				if key == 'properties':
-					for field in data[acc_name][key]:
-						temp_account.add_field(field)
-				if key == 'data':
-					for date in data[acc_name][key]:
-						temp_account.add_data(date, data[acc_name][key][date])
-
-		print('Data imported from: ', file_path)
-		time.sleep(2)
 
 	###########################################################################
 	def create_account(self):
 		""" create account """
-		print('\nCreate Account\n')
-		self.accounts.append(account.Account(input('Input account name: ')))
-		self.landing_page()
+		try:
+			print('\nCreate Account\n')
+			self.accounts.append(account.Account(input('Input account name: ')))
+			self.landing_page()
+		except:
+			print('Error in create_account')
+			self.landing_page()
 
 	def edit_account(self, account=None):
 		""" edit account """
-		if not account:
-			account = self.choose_account()
-		choice_list = [
-					'Add Field',
-					'Remove Field',
-					'Delete Account',
-					'Go Back'
-					]
+		try:
+			if not account:
+				account = self.choose_account()
+			assert account != None, 'No account chosen'
 
-		choice = self.choice_user_interface(choice_list)
+			choice_list = [
+						'Add Field',
+						'Remove Field',
+						'Delete Account',
+						'Go Back'
+						]
 
-		if choice == choice_list.index('Add Field'):
-			self.add_account_field(account)
-			self.edit_account(account)
-		elif choice == choice_list.index('Remove Field'):
-			self.remove_account_field(account)
-			self.edit_account(account)
-		elif choice == choice_list.index('Delete Account'):
-			self.delete_account(account)
-			self.edit_account(account)
-		elif choice == choice_list.index('Go Back'):
-			self.landing_page()
-		else:
-			print('Invalid input')
-			self.edit_account(account)
+			choice = self.choice_user_interface(choice_list)
+
+			if choice == choice_list.index('Add Field'):
+				self.add_account_field(account)
+				self.edit_account(account)
+			elif choice == choice_list.index('Remove Field'):
+				self.remove_account_field(account)
+				self.edit_account(account)
+			elif choice == choice_list.index('Delete Account'):
+				self.delete_account(account)
+				self.edit_account(account)
+			elif choice == choice_list.index('Go Back'):
+				self.landing_page()
+			else:
+				assert True, 'Error in edit_account'
+				self.edit_account(account)
+				self.landing_page()
+
+		except AssertionError as msg:
+			print(msg)
+			print('Error in edit_account')
 			self.landing_page()
 
 	def add_account_field(self, account):
@@ -187,51 +196,53 @@ class FinPlotUI():
 
 	def delete_account(self, account):
 		""" delete account """
-		print(f'Are you sure that you want to delete {account.get_name()}?\n')
-		choice_list = ['Yes', 'No']
-		for idx, choice in enumerate(choice_list):
-			print(f'[{idx}] {choice}')
-		choice = int(input('\nUser input: '))
-		if choice == 0:
-			print('You chose "Yes"')
-			self.accounts.remove(account)
-		elif choice == 1:
-			print('You chose "No"')
-		else:
-			print('invalid choice')
-			time.sleep(2)
-			self.delete_account(account)
-
-
-	def input_data(self):
-		""" input data """
-		choice_list = []
-		for acc in self.accounts:
-			choice_list.append(acc)
-		account = choice_list[self.choice_user_interface(choice_list)]
-
-		print('\nAccount Fields:')
-		for field in account.get_fields():
-			print(field)
-
-		print('\nData Input:')
-		date = input('\nDate: ')
-		if not self.is_date_valid(date):
-			time.sleep(2)
-			self.input_data()
-			return
-		input_data = {}
-		for field in account.get_fields():
-			input_data[field] = float(input(f'{field}: '))
-			if not self.is_data_valid(input_data[field]):
+		try:
+			print(f'Are you sure that you want to delete {account.get_name()}?\n')
+			choice_list = ['Yes', 'No']
+			for idx, choice in enumerate(choice_list):
+				print(f'[{idx}] {choice}')
+			choice = int(input('\nUser input: '))
+			if choice == 0:
+				print('You chose "Yes"')
+				self.accounts.remove(account)
+			elif choice == 1:
+				print('You chose "No"')
+			else:
+				print('invalid choice')
 				time.sleep(2)
-				self.input_data()
-				return
+				self.delete_account(account)
+		except:
+			print('Error in delete_account')
+			self.landing_page()
+
+	####################################
+	def input_data(self, account=None):
+		""" input data """
+		try: 
+			if not account:
+				account = self.choose_account()
+			assert account != None, 'No account chosen'
+			print('\nData Input:')
+			date = input('\nDate: ')
+			assert self.is_date_valid(date), "Exception Error 420: Bad Date Input"
+
+			print('\nAccount Fields:')
+			for field in accounts.get_fields():
+				print(field)
+			print()
+
+			input_data = {}
+			for field in account.get_fields():
+				input_data[field] = float(input(f'{field}: '))
+				assert not self.is_data_valid(input_data[field]), "Exception Error 69: Bad Input"
 			account.add_data(date, input_data)
+			print(input_data)
 
-		print(input_data)
-
-		self.landing_page()
+			self.landing_page()
+		
+		except AssertionError as msg:
+			print(msg)
+			self.landing_page()
 
 	def is_date_valid(self, date):
 		""" check in date input is valid """
@@ -265,53 +276,68 @@ class FinPlotUI():
 		with open(os.path.join(self.save_path, now_str), 'w') as outfile:
 			outfile.write(json_str)
 
+		self.landing_page()
+
 	def choose_account(self):
 		""" choose account from accounts """
-		choice_list = []
-		for account in self.accounts:
-			choice_list.append(account.get_name())
+		try:
+			choice_list = []
+			for account in self.accounts:
+				choice_list.append(account.get_name())
 
-		choice = self.choice_user_interface(choice_list)
-		account_name = choice_list[choice]
-		print('That account is: ', account_name)
+			assert len(choice_list) != 0, 'No accounts exist. Create an account before adding data'
 
-		for val in self.accounts:
-			if account_name == val.get_name():
-				account = val
-				break
+			print('\nChoose Account: ')
+			choice = self.choice_user_interface(choice_list)
+			print(choice, choice_list)
+			account_name = choice_list[choice]
+			print('That account is: ', account_name)
 
-		return account
+			for val in self.accounts:
+				if account_name == val.get_name():
+					account = val
+					break
+
+			return account
+		except AssertionError as msg:
+			print(msg)
+			print('Error in choose_account')
+			return None
 
 	def plot_account_data(self):
 		""" plot data from accounts """
-		account = self.choose_account()
-		data = account.get_data()
-		print(data)
-		x_vals, z_vals= [], []
-		plot_data = {}
-		for date in data:
-			for prop in data[date]:
-				if prop not in plot_data:
-					plot_data[prop] = [[], []]
-				print(datetime.datetime.strptime(date, '%Y%m%d'), data[date][prop])
-				plot_data[prop][0].append(datetime.datetime.strptime(date, '%Y%m%d'))
-				plot_data[prop][1].append(float(data[date][prop]))
+		try:
+			account = self.choose_account()
+			data = account.get_data()
+			print(data)
+			x_vals, z_vals= [], []
+			plot_data = {}
+			for date in data:
+				for prop in data[date]:
+					if prop not in plot_data:
+						plot_data[prop] = [[], []]
+					print(datetime.datetime.strptime(date, '%Y%m%d'), data[date][prop])
+					plot_data[prop][0].append(datetime.datetime.strptime(date, '%Y%m%d'))
+					plot_data[prop][1].append(float(data[date][prop]))
 
-			#x_vals.append(datetime.datetime.strptime(date, '%Y%m%d'))
-			#z_vals.append(float(data[date]['Ending Balance']))
-			#print(date, data[date]['Ending Balance'])
+				#x_vals.append(datetime.datetime.strptime(date, '%Y%m%d'))
+				#z_vals.append(float(data[date]['Ending Balance']))
+				#print(date, data[date]['Ending Balance'])
 
 
-		# red dashes, blue squares and green triangles
-		for prop in plot_data:
-			plt.plot(plot_data[prop][0], plot_data[prop][1], label=prop)
-		plt.legend()
-		plt.title(account.get_name())
-		plt.xlabel('Date')
-		plt.ylabel('$')
-		plt.show()
+			# red dashes, blue squares and green triangles
+			for prop in plot_data:
+				plt.plot(plot_data[prop][0], plot_data[prop][1], label=prop)
+			plt.legend()
+			plt.title(account.get_name())
+			plt.xlabel('Date')
+			plt.ylabel('$')
+			plt.show()
 
-		self.landing_page()
+			self.landing_page()
+		except:
+			print('Error in plot_account_data')
+			self.landing_page()
 
 
 	def exit_program(self):
