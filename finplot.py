@@ -50,7 +50,7 @@ class FinPlotUI():
 		print('What would you like to do?\n')
 		choice_dict = {
 					'Import Data': self.import_data,
-					'Input Data': self.input_data,
+					'Input Data': self.input_account_data,
 					'Create Account': self.create_account,
 					'Edit Account': self.edit_account,
 					'Plot Data': self.plot_account_data,
@@ -102,8 +102,18 @@ class FinPlotUI():
 			print("\nInvalid input. Try again")
 			self.function_user_interface(choice_dict)
 
-	def choice_user_interface(self, choice_list):
-		""" build the user interface """
+	def choice_user_interface(self, choice_list, user_prompt=None):
+		"""
+		build the user interface
+		choice_list: list of choices
+		user_prompt: message to display to the user
+		returns the index chosen
+		"""
+		print()
+		if user_prompt:
+			print(user_prompt)
+		else:
+			print('Choose option from the below list: ')
 		valid_choices = range(len(choice_list))
 		for idx, val in enumerate(choice_list):
 			print(f'[{idx}] {val}')
@@ -112,7 +122,7 @@ class FinPlotUI():
 			print('\nyou chose: ', choice_list[choice])
 		else:
 			print("\nInvalid input. Try again")
-			self.choice_user_interface(choice_list)
+			choice = self.choice_user_interface(choice_list)
 
 		return choice
 
@@ -203,12 +213,18 @@ class FinPlotUI():
 			self.delete_account(account)
 
 
-	def input_data(self):
+	def input_account_data(self):
 		""" input data """
 		choice_list = []
 		for acc in self.accounts:
 			choice_list.append(acc)
-		account = choice_list[self.choice_user_interface(choice_list)]
+		choice_list.append('go back')
+
+		message = 'Choose the account that you would like to add data to: '
+		account = choice_list[self.choice_user_interface(choice_list, message)]
+		if account == 'go back':
+			self.landing_page()
+			return
 
 		print('\nAccount Fields:')
 		for field in account.get_fields():
@@ -218,15 +234,16 @@ class FinPlotUI():
 		date = input('\nDate: ')
 		if not self.is_date_valid(date):
 			time.sleep(2)
-			self.input_data()
+			self.input_account_data()
 			return
 		input_data = {}
 		for field in account.get_fields():
-			input_data[field] = float(input(f'{field}: '))
-			if not self.is_data_valid(input_data[field]):
+			user_input = input(f'{field}: ')
+			if not self.is_data_valid(user_input):
 				time.sleep(2)
-				self.input_data()
+				self.input_account_data()
 				return
+			input_data[field] = float(user_input)
 			account.add_data(date, input_data)
 
 		print(input_data)
@@ -236,7 +253,6 @@ class FinPlotUI():
 	def is_date_valid(self, date):
 		""" check in date input is valid """
 		ret_val = True
-
 		if len(date) != 8:
 			ret_val = False
 			print('Invalid Date: ', date)
@@ -251,7 +267,10 @@ class FinPlotUI():
 		ret_val = True
 		if data == '':
 			ret_val = False
-			print('Invalid data: ', data)
+			print('Invalid data: ', data, ' - data field is empty')
+		elif not data.isnumeric():
+			ret_val = False
+			print('Invalid data: ', data, ' - data field is not numeric')
 
 		return ret_val
 
