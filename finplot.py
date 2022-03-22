@@ -50,8 +50,8 @@ class FinPlotUI():
 		print(self.dashes)
 		print('What would you like to do?\n')
 		choice_dict = {
+					'Input Data': self.input_account_data,
 					'Import Data': self.import_data_redirect,
-					'Input Data': self.input_data,
 					'Create Account': self.create_account,
 					'Edit Account': self.edit_account,
 					'Plot Data': self.plot_account_data,
@@ -118,9 +118,38 @@ class FinPlotUI():
 
 		return file
 
-	def choice_user_interface(self, choice_list):
-		""" build the user interface """
+	def function_user_interface(self, choice_dict):
+		"""
+		build the user interface
+
+		choice dict: {choice1: function1, ...}
+		"""
+		choice_list = list()
+		[choice_list.append(key) for key in choice_dict]
+		valid_choices = range(len(choice_list))
+		for idx, val in enumerate(choice_list):
+			print(f'[{idx}] {val}')
+		choice = int(input('\nUser input: '))
+		if choice in valid_choices:
+			print('\nyou chose: ', choice_list[choice])
+			choice_dict[choice_list[choice]]()
+		else:
+			print("\nInvalid input. Try again")
+			self.function_user_interface(choice_dict)
+
+	def choice_user_interface(self, choice_list, user_prompt=None):
+		"""
+		build the user interface
+		choice_list: list of choices
+		user_prompt: message to display to the user
+		returns the index chosen
+		"""
 		try:
+			print()
+			if user_prompt:
+				print(user_prompt)
+			else:
+				print('Choose option from the below list: ')
 			valid_choices = range(len(choice_list))
 			for idx, val in enumerate(choice_list):
 				print(f'[{idx}] {val}')
@@ -129,9 +158,10 @@ class FinPlotUI():
 				print('\nyou chose: ', choice_list[choice])
 			else:
 				print("\nInvalid input. Try again")
-				self.choice_user_interface(choice_list)
+				choice = self.choice_user_interface(choice_list)
 
-			return choice
+				return choice
+
 		except:
 			print('something weird happened')
 			return None
@@ -218,7 +248,7 @@ class FinPlotUI():
 	####################################
 	def input_data(self, account=None):
 		""" input data """
-		try: 
+		try:
 			if not account:
 				account = self.choose_account()
 			assert account != None, 'No account chosen'
@@ -239,7 +269,7 @@ class FinPlotUI():
 			print(input_data)
 
 			self.landing_page()
-		
+
 		except AssertionError as msg:
 			print(msg)
 			self.landing_page()
@@ -247,7 +277,6 @@ class FinPlotUI():
 	def is_date_valid(self, date):
 		""" check in date input is valid """
 		ret_val = True
-
 		if len(date) != 8:
 			ret_val = False
 			print('Invalid Date: ', date)
@@ -262,7 +291,10 @@ class FinPlotUI():
 		ret_val = True
 		if data == '':
 			ret_val = False
-			print('Invalid data: ', data)
+			print('Invalid data: ', data, ' - data field is empty')
+		elif not data.isnumeric():
+			ret_val = False
+			print('Invalid data: ', data, ' - data field is not numeric')
 
 		return ret_val
 
