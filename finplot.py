@@ -227,6 +227,13 @@ class FinPlotUI():
 
 	def is_date_valid(self, date):
 		""" check in date input is valid """
+		try:
+			datetime.datetime.strptime(date, '%Y%m%d')
+			return True
+		except:
+			return False
+
+		"""
 		ret_val = True
 		if len(date) != 8:
 			ret_val = False
@@ -235,7 +242,9 @@ class FinPlotUI():
 			ret_val = False
 			print('Invalid Date: ', date)
 
+
 		return ret_val
+		"""
 
 	def is_data_valid(self, data):
 		""" check if data is valid """
