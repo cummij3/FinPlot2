@@ -82,7 +82,7 @@ class FinPlotUI():
 					if key == 'tags':
 						for tag in data[acc_name][key]:
 							temp_account.add_tag(tag)
-					if key == 'properties':
+					if key == 'fields':
 						for field in data[acc_name][key]:
 							temp_account.add_field(field)
 					if key == 'data':
@@ -91,7 +91,7 @@ class FinPlotUI():
 
 			print('Data imported from: ', file_path)
 			time.sleep(2)
-			
+
 		except:
 			print('Error in import_data')
 
@@ -118,56 +118,6 @@ class FinPlotUI():
 
 		return file
 
-	def function_user_interface(self, choice_dict):
-		"""
-		build the user interface
-
-		choice dict: {choice1: function1, ...}
-		"""
-		choice_list = list()
-		[choice_list.append(key) for key in choice_dict]
-		valid_choices = range(len(choice_list))
-		for idx, val in enumerate(choice_list):
-			print(f'[{idx}] {val}')
-		choice = int(input('\nUser input: '))
-		if choice in valid_choices:
-			print('\nyou chose: ', choice_list[choice])
-			choice_dict[choice_list[choice]]()
-		else:
-			print("\nInvalid input. Try again")
-			self.function_user_interface(choice_dict)
-
-	def choice_user_interface(self, choice_list, user_prompt=None):
-		"""
-		build the user interface
-		choice_list: list of choices
-		user_prompt: message to display to the user
-		returns the index chosen
-		"""
-		try:
-			print()
-			if user_prompt:
-				print(user_prompt)
-			else:
-				print('Choose option from the below list: ')
-			valid_choices = range(len(choice_list))
-			for idx, val in enumerate(choice_list):
-				print(f'[{idx}] {val}')
-			choice = int(input('\nUser input: '))
-			if choice in valid_choices:
-				print('\nyou chose: ', choice_list[choice])
-			else:
-				print("\nInvalid input. Try again")
-				choice = self.choice_user_interface(choice_list)
-
-				return choice
-
-		except:
-			print('something weird happened')
-			return None
-
-
-
 	###########################################################################
 	def create_account(self):
 		""" create account """
@@ -193,7 +143,7 @@ class FinPlotUI():
 						'Go Back'
 						]
 
-			choice = self.choice_user_interface(choice_list)
+			choice = fpu.choice_user_interface(choice_list)
 
 			if choice == choice_list.index('Add Field'):
 				self.add_account_field(account)
@@ -246,7 +196,7 @@ class FinPlotUI():
 			self.landing_page()
 
 	####################################
-	def input_data(self, account=None):
+	def input_account_data(self, account=None):
 		""" input data """
 		try:
 			if not account:
@@ -257,16 +207,17 @@ class FinPlotUI():
 			assert self.is_date_valid(date), "Exception Error 420: Bad Date Input"
 
 			print('\nAccount Fields:')
-			for field in accounts.get_fields():
+			for field in account.get_fields():
 				print(field)
 			print()
 
 			input_data = {}
 			for field in account.get_fields():
-				input_data[field] = float(input(f'{field}: '))
-				assert not self.is_data_valid(input_data[field]), "Exception Error 69: Bad Input"
+				user_input = input(f'{field}: ')
+				assert self.is_data_valid(user_input), "Exception Error 69: Bad Input"
+				input_data[field] = float(user_input)
 			account.add_data(date, input_data)
-			print(input_data)
+			print('\n', input_data)
 
 			self.landing_page()
 
@@ -320,8 +271,7 @@ class FinPlotUI():
 			assert len(choice_list) != 0, 'No accounts exist. Create an account before adding data'
 
 			print('\nChoose Account: ')
-			choice = self.choice_user_interface(choice_list)
-			print(choice, choice_list)
+			choice = fpu.choice_user_interface(choice_list)
 			account_name = choice_list[choice]
 			print('That account is: ', account_name)
 
