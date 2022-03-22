@@ -148,18 +148,23 @@ class FinPlotUI():
 			if choice == choice_list.index('Add Field'):
 				self.add_account_field(account)
 				self.edit_account(account)
+				return
 			elif choice == choice_list.index('Remove Field'):
 				self.remove_account_field(account)
 				self.edit_account(account)
+				return
 			elif choice == choice_list.index('Delete Account'):
 				self.delete_account(account)
-				self.edit_account(account)
+				self.landing_page()
+				return
 			elif choice == choice_list.index('Go Back'):
 				self.landing_page()
+				return
 			else:
 				assert True, 'Error in edit_account'
 				self.edit_account(account)
 				self.landing_page()
+				return
 
 		except AssertionError as msg:
 			print(msg)
@@ -172,7 +177,7 @@ class FinPlotUI():
 
 	def remove_account_field(self, account):
 		""" remove account field """
-		account.remove_field(input('Input Field Nane: '))
+		account.remove_field(input('Input Field Name: '))
 
 	def delete_account(self, account):
 		""" delete account """
@@ -233,26 +238,10 @@ class FinPlotUI():
 		except:
 			return False
 
-		"""
-		ret_val = True
-		if len(date) != 8:
-			ret_val = False
-			print('Invalid Date: ', date)
-		elif not date.isnumeric():
-			ret_val = False
-			print('Invalid Date: ', date)
-
-
-		return ret_val
-		"""
-
 	def is_data_valid(self, data):
 		""" check if data is valid """
 		ret_val = True
-		if data == '':
-			ret_val = False
-			print('Invalid data: ', data, ' - data field is empty')
-		elif not data.isnumeric():
+		if not data.isnumeric():
 			ret_val = False
 			print('Invalid data: ', data, ' - data field is not numeric')
 
@@ -277,10 +266,15 @@ class FinPlotUI():
 			for account in self.accounts:
 				choice_list.append(account.get_name())
 
+			choice_list.append('Go Back')
+
 			assert len(choice_list) != 0, 'No accounts exist. Create an account before adding data'
 
 			print('\nChoose Account: ')
 			choice = fpu.choice_user_interface(choice_list)
+			if choice_list[choice] == 'Go Back':
+				self.landing_page()
+				return
 			account_name = choice_list[choice]
 			print('That account is: ', account_name)
 
