@@ -295,15 +295,18 @@ class FinPlotUI():
 			account = self.choose_account()
 			data = account.get_data()
 			print(data)
-			x_vals, z_vals= [], []
+			dates = list()
+			for date in data.keys():
+				dates.append(int(date))
+			dates.sort()
 			plot_data = {}
-			for date in data:
-				for prop in data[date]:
+			for date in dates:
+				for prop in data[str(date)]:
 					if prop not in plot_data:
 						plot_data[prop] = [[], []]
-					print(datetime.datetime.strptime(date, '%Y%m%d'), data[date][prop])
-					plot_data[prop][0].append(datetime.datetime.strptime(date, '%Y%m%d'))
-					plot_data[prop][1].append(float(data[date][prop]))
+					print(datetime.datetime.strptime(str(date), '%Y%m%d'), data[str(date)][prop])
+					plot_data[prop][0].append(datetime.datetime.strptime(str(date), '%Y%m%d'))
+					plot_data[prop][1].append(float(data[str(date)][prop]))
 
 				#x_vals.append(datetime.datetime.strptime(date, '%Y%m%d'))
 				#z_vals.append(float(data[date]['Ending Balance']))
@@ -320,9 +323,14 @@ class FinPlotUI():
 			plt.show()
 
 			self.landing_page()
+			return
+
+		except BaseException as err:
+			print(f"Unexpected {err}, {type(err)}")
 		except:
 			print('Error in plot_account_data')
 			self.landing_page()
+			return
 
 
 	def exit_program(self):
