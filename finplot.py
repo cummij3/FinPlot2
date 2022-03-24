@@ -33,8 +33,11 @@ class FinPlotUI():
 			files = os.listdir()
 			latest_filename = '00000000'
 			for filename in files:
-				if int(filename[0:8]) > int(latest_filename[0:8]):
-					latest_filename = filename
+				try:
+					if int(filename[0:8]+filename[9:15]) > int(latest_filename[0:8]+latest_filename[9:15]):
+						latest_filename = filename
+				except:
+					print('Error in __init__: there are some bad files in this directory')
 
 		if latest_filename != '00000000':
 			self.import_data(latest_filename)
@@ -84,7 +87,8 @@ class FinPlotUI():
 							temp_account.add_tag(tag)
 					if key == 'fields':
 						for field in data[acc_name][key]:
-							temp_account.add_field(field)
+							if field not in temp_account.get_fields():
+								temp_account.add_field(field)
 					if key == 'data':
 						for date in data[acc_name][key]:
 							temp_account.add_data(date, data[acc_name][key][date])
@@ -200,7 +204,6 @@ class FinPlotUI():
 			print('Error in delete_account')
 			self.landing_page()
 
-	####################################
 	def input_account_data(self, account=None):
 		""" input data """
 		try:
@@ -225,10 +228,12 @@ class FinPlotUI():
 			print('\n', input_data)
 
 			self.landing_page()
+			return
 
 		except AssertionError as msg:
 			print(msg)
 			self.landing_page()
+			return
 
 	def is_date_valid(self, date):
 		""" check in date input is valid """
@@ -240,12 +245,12 @@ class FinPlotUI():
 
 	def is_data_valid(self, data):
 		""" check if data is valid """
-		ret_val = True
-		if not data.isnumeric():
-			ret_val = False
-			print('Invalid data: ', data, ' - data field is not numeric')
-
-		return ret_val
+		try:
+			float(data)
+			return True
+		except:
+			print(f'Error in is_data_valid: {data} cannot be converted to float')
+			return False
 
 	def save_data(self):
 		""" save data to json """

@@ -8,7 +8,7 @@ class Account():
 	def __init__(self, name):
 		self.name = name
 		self.data = dict()
-		self.fields = ['ending balance', 'contribution']
+		self.fields = ['Ending Balance', 'Withdrawals and Contributions']
 		self.tags = list()
 
 	def __repr__(self):
