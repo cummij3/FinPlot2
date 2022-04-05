@@ -22,6 +22,7 @@ class FinPlotUI():
 		os.system('clear')	# use 'cls' for windows
 		self.accounts = []
 		self.dashes = '-'*50
+		self.back_str = 'Go Back'
 		self.save_path = os.path.join(os.path.expanduser("~"), 'finplot_data')
 		os.chdir(self.save_path)
 		if not os.path.exists(self.save_path):
@@ -54,10 +55,10 @@ class FinPlotUI():
 		print('What would you like to do?\n')
 		choice_dict = {
 					'Input Data': self.input_account_data,
-					'Import Data': self.import_data_redirect,
+					'Plot Data': self.plot_data_ui,
 					'Create Account': self.create_account,
 					'Edit Account': self.edit_account,
-					'Plot Data': self.plot_account_data,
+					'Import Data': self.import_data_redirect,
 					'Save Data': self.save_data,
 					'Exit': self.exit_program
 					}
@@ -137,7 +138,7 @@ class FinPlotUI():
 		""" edit account """
 		try:
 			if not account:
-				account = self.choose_account()
+				account = self.choose_account_ui()
 			assert account != None, 'No account chosen'
 
 			choice_list = [
@@ -208,7 +209,7 @@ class FinPlotUI():
 		""" input data """
 		try:
 			if not account:
-				account = self.choose_account()
+				account = self.choose_account_ui()
 			assert account != None, 'No account chosen'
 			print('\nData Input:')
 			date = input('\nDate: ')
@@ -264,22 +265,22 @@ class FinPlotUI():
 
 		self.landing_page()
 
-	def choose_account(self):
+	def choose_account_ui(self):
 		""" choose account from accounts """
 		try:
 			choice_list = []
 			for account in self.accounts:
 				choice_list.append(account.get_name())
-
-			choice_list.append('Go Back')
+			choice_list.append(self.back_str)
 
 			assert len(choice_list) != 0, 'No accounts exist. Create an account before adding data'
 
 			print('\nChoose Account: ')
 			choice = fpu.choice_user_interface(choice_list)
-			if choice_list[choice] == 'Go Back':
-				self.landing_page()
-				return
+
+			if choice_list[choice] == self.back_str:
+				return self.back_str
+
 			account_name = choice_list[choice]
 			print('That account is: ', account_name)
 
@@ -291,19 +292,34 @@ class FinPlotUI():
 			return account
 		except AssertionError as msg:
 			print(msg)
-			print('Error in choose_account')
+			print('Error in choose_account_ui')
 			return None
+
+	def plot_data_ui(self):
+		""" plot data ui """
+		print(self.dashes)
+		print('Choose from the below plot options:\n')
+		choice_dict = {
+					'Plot Account Data': self.plot_account_data,
+					'Plot Tag Data': self.plot_tag_data,
+					'Plot Latest Values': self.plot_latest_values
+					}
+
+		fpu.function_user_interface(choice_dict)
 
 	def plot_account_data(self):
 		""" plot data from accounts """
 		try:
-			account = self.choose_account()
+			account = self.choose_account_ui()
+			if account == self.back_str:
+				self.landing_page()
+				return
 			data = account.get_data()
 			print(data)
 			dates = list()
 			for date in data.keys():
 				dates.append(int(date))
-			dates.sort()
+			#dates.sort()
 			plot_data = {}
 			for date in dates:
 				for prop in data[str(date)]:
@@ -317,8 +333,6 @@ class FinPlotUI():
 				#z_vals.append(float(data[date]['Ending Balance']))
 				#print(date, data[date]['Ending Balance'])
 
-
-			# red dashes, blue squares and green triangles
 			for prop in plot_data:
 				plt.plot(plot_data[prop][0], plot_data[prop][1], label=prop)
 			plt.legend()
@@ -331,11 +345,65 @@ class FinPlotUI():
 			return
 
 		except BaseException as err:
-			print(f"Unexpected {err}, {type(err)}")
+			print(f"Error in plot_account_data: {err}, {type(err)}")
+			self.landing_page()
 		except:
 			print('Error in plot_account_data')
 			self.landing_page()
 			return
+
+	def plot_tag_data(self):
+		""" plot the sum of account fields that have a tag """
+		try:
+			# Choose tag
+			tags = list()
+			for account in self.accounts:
+				acc_tags = account.get_tags()
+				for acc_tag in acc_tags:
+					if acc_tag not in tags:
+						tags.append(acc_tag)
+			tag = tags[fpu.choice_user_interface(tags, "Choose account tag: ")]
+
+			# Build account list
+			account_list = list()
+			for account in self.accounts:
+				if tag in account.get_tags():
+					account_list.append(account)
+
+			# Structure plot data
+			plot_data = list()
+			for account in account_list:
+				x_vals, y_vals = list(), list()
+				data = account.get_data()
+				for date in data:
+					x_vals.append(datetime.datetime.strptime(str(date), '%Y%m%d'))
+					y_vals.append(float(data[str(date)]['Ending Balance']))
+				plot_data.append({'name':account.get_name(), 'x_vals': x_vals, 'y_vals': y_vals})
+			print('plot_tag_data')
+
+			# Plot data
+			for idx in plot_data:
+				plt.plot(plot_data[idx]['x_vals'], plot_data[idx]['y_vals'], label=plot_data[idx]['name'])
+
+			plt.legend()
+			plt.title(account.get_name())
+			plt.xlabel('Date')
+			plt.ylabel('$')
+			plt.show()
+
+			self.landing_page()
+
+		except BaseException as err:
+			print(f"Error in plot_tag_data: {err}, {type(err)}")
+			self.landing_page()
+		except:
+			print('Error in plot_tag_data')
+			self.landing_page()
+			return
+
+	def plot_latest_values(self):
+		""" plot the latest values in a pie chart """
+		print('plot_latest_values')
 
 
 	def exit_program(self):
