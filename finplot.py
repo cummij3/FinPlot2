@@ -382,11 +382,12 @@ class FinPlotUI():
 			print('plot_tag_data')
 
 			# Plot data
-			for idx in plot_data:
+			for idx in range(len(plot_data)):
+				print(type(plot_data[idx]['x_vals']), type(plot_data[idx]['y_vals']), type(plot_data[idx]['name']))
 				plt.plot(plot_data[idx]['x_vals'], plot_data[idx]['y_vals'], label=plot_data[idx]['name'])
 
 			plt.legend()
-			plt.title(account.get_name())
+			plt.title(tag)
 			plt.xlabel('Date')
 			plt.ylabel('$')
 			plt.show()
