@@ -4,6 +4,9 @@ account.py
 Account class that allows you to input data to an account
 """
 
+import math
+import datetime
+
 class Account():
 	def __init__(self, name):
 		self.name = name
@@ -49,3 +52,25 @@ class Account():
 	def get_tags(self):
 		""" get account tags """
 		return self.tags
+
+	def get_closest_past_date(self, input_date):
+		""" return the closest date that is in the past """
+		dates = self.data.keys()
+		smallest_diff = datetime.timedelta(days=10000000)
+		#input_date = datetime.datetime.strptime(input_date, '%Y%m%d')
+		closest_date = None
+		for date in dates:
+			date = datetime.datetime.strptime(date, '%Y%m%d')
+			if input_date > date:
+				if input_date - date < smallest_diff:
+					closest_date = date
+					smallest_diff = input_date - date
+
+		return closest_date
+
+if __name__ == '__main__':
+	test_acc = Account('cool bank')
+	test_acc.add_data('20220202', {'Ending Balance': '10', 'Withdrawals and Contributions':'16'})
+	test_acc.add_data('20220302', {'Ending Balance': '26', 'Withdrawals and Contributions':'6'})
+	test_acc.add_data('20230302', {'Ending Balance': '26', 'Withdrawals and Contributions':'6'})
+	print('closest date:', test_acc.get_closest_past_date('20240203'))

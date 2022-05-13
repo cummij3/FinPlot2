@@ -379,11 +379,28 @@ class FinPlotUI():
 					x_vals.append(datetime.datetime.strptime(str(date), '%Y%m%d'))
 					y_vals.append(float(data[str(date)]['Ending Balance']))
 				plot_data.append({'name':account.get_name(), 'x_vals': x_vals, 'y_vals': y_vals})
-			print('plot_tag_data')
 
+			# structure sum data
+			x_vals, y_vals = list(), list()
+			date_list = list()
+			for idx in range(len(plot_data)):
+				date_list += plot_data[idx]['x_vals']
+			min_date = min(date_list)
+			max_date = max(date_list)
+
+			date = min_date
+			while date < max_date:
+				val_sum = 0
+				for account in account_list:
+					closest_date = account.get_closest_past_date(date)
+					if closest_date:
+						val_sum += float(account.get_data()[datetime.datetime.strftime(closest_date, "%Y%m%d")]['Ending Balance'])
+				x_vals.append(date)
+				y_vals.append(val_sum)
+				date += datetime.timedelta(weeks=4)
+			plot_data.append({'name':'total', 'x_vals': x_vals, 'y_vals': y_vals})
 			# Plot data
 			for idx in range(len(plot_data)):
-				print(type(plot_data[idx]['x_vals']), type(plot_data[idx]['y_vals']), type(plot_data[idx]['name']))
 				plt.plot(plot_data[idx]['x_vals'], plot_data[idx]['y_vals'], label=plot_data[idx]['name'])
 
 			plt.legend()
