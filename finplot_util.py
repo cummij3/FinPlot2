@@ -4,6 +4,8 @@ finplot_util.py
 This file stores functions used to support finplot
 """
 
+import datetime
+
 
 def function_user_interface(choice_dict):
 	"""
@@ -23,10 +25,6 @@ def function_user_interface(choice_dict):
 	else:
 		print("\nInvalid input. Try again")
 		function_user_interface(choice_dict)
-
-
-if __name__ == '__main__':
-	print('do stuff here')
 
 def choice_user_interface(choice_list, user_prompt=None):
 	"""
@@ -57,3 +55,24 @@ def choice_user_interface(choice_list, user_prompt=None):
 	except:
 		print('\nsomething weird happened\n')
 		return None
+
+def is_date_valid(date):
+	""" check in date input is valid """
+	try:
+		datetime.datetime.strptime(date, '%Y%m%d')
+		return True
+	except:
+		return False
+
+def is_data_valid(data):
+	""" check if data is valid """
+	try:
+		float(data)
+		return True
+	except:
+		print(f'Error in is_data_valid: {data} cannot be converted to float')
+		return False
+
+
+if __name__ == '__main__':
+	print('do stuff here')

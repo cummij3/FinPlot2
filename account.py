@@ -57,16 +57,27 @@ class Account():
 		""" return the closest date that is in the past """
 		dates = self.data.keys()
 		smallest_diff = datetime.timedelta(days=10000000)
-		#input_date = datetime.datetime.strptime(input_date, '%Y%m%d')
 		closest_date = None
+
+		if type(input_date) == str:
+			input_date = datetime.datetime.strptime(input_date, '%Y%m%d')
+
 		for date in dates:
-			date = datetime.datetime.strptime(date, '%Y%m%d')
+			if type(date) == str:
+				date = datetime.datetime.strptime(date, '%Y%m%d')
 			if input_date > date:
 				if input_date - date < smallest_diff:
 					closest_date = date
 					smallest_diff = input_date - date
 
 		return closest_date
+
+	def get_latest_data(self):
+		""" return data from most recent date to now """
+		closest_date = self.get_closest_past_date(datetime.datetime.now())
+		return self.get_data()[datetime.datetime.strftime(closest_date, "%Y%m%d")]
+
+
 
 if __name__ == '__main__':
 	test_acc = Account('cool bank')

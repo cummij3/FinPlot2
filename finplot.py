@@ -213,7 +213,7 @@ class FinPlotUI():
 			assert account != None, 'No account chosen'
 			print('\nData Input:')
 			date = input('\nDate: ')
-			assert self.is_date_valid(date), "Exception Error 420: Bad Date Input"
+			assert fpu.is_date_valid(date), "Exception Error 420: Bad Date Input"
 
 			print('\nAccount Fields:')
 			for field in account.get_fields():
@@ -223,7 +223,7 @@ class FinPlotUI():
 			input_data = {}
 			for field in account.get_fields():
 				user_input = input(f'{field}: ')
-				assert self.is_data_valid(user_input), "Exception Error 69: Bad Input"
+				assert fpu.is_data_valid(user_input), "Exception Error 69: Bad Input"
 				input_data[field] = float(user_input)
 			account.add_data(date, input_data)
 			print('\n', input_data)
@@ -235,23 +235,6 @@ class FinPlotUI():
 			print(msg)
 			self.landing_page()
 			return
-
-	def is_date_valid(self, date):
-		""" check in date input is valid """
-		try:
-			datetime.datetime.strptime(date, '%Y%m%d')
-			return True
-		except:
-			return False
-
-	def is_data_valid(self, data):
-		""" check if data is valid """
-		try:
-			float(data)
-			return True
-		except:
-			print(f'Error in is_data_valid: {data} cannot be converted to float')
-			return False
 
 	def save_data(self):
 		""" save data to json """
@@ -422,6 +405,44 @@ class FinPlotUI():
 	def plot_latest_values(self):
 		""" plot the latest values in a pie chart """
 		print('plot_latest_values')
+
+		# build dict of form {tag:[accounts with tag]}
+		tag_dict = {}
+		for account in self.accounts:
+			tags = account.get_tags()
+			for tag in tags:
+				if tag not in tag_dict:
+					tag_dict[tag] = [account]
+				else:
+					tag_dict[tag].append(account)
+
+		# build dict of form {tag:sum of account value with tag}
+		sum_dict = {}
+		figs, fig_count = [], 1
+		for tag in tag_dict:
+			plot_data = {'vals': [], 'labels': [], 'title': ''}
+			tag_sum = 0
+			for account in tag_dict[tag]:
+				val = float(account.get_latest_data()['Ending Balance'])
+				if val != 0:
+					tag_sum += val
+					plot_data['vals'].append(val)
+					plot_data['labels'].append(account.get_name())
+			sum_dict[tag] = tag_sum
+			print(f"{tag} Total: ", tag_sum)
+			plot_data['title'] = tag + ' - total = ' + "${:,.0f}".format(tag_sum)
+
+			figs.append(plt.figure(fig_count))
+			print(len(plot_data['vals']), len(plot_data['labels']))
+			plt.pie(plot_data['vals'], labels=plot_data['labels'])
+			plt.title(plot_data['title'])
+			fig_count += 1
+		plt.show()
+
+
+		self.landing_page()
+
+
 
 
 	def exit_program(self):
