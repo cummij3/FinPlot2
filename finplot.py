@@ -361,7 +361,11 @@ class FinPlotUI():
 			for account in account_list:
 				x_vals, y_vals = list(), list()
 				data = account.get_data()
-				for date in data:
+				dates = list(data.keys())
+				for date in dates:
+					date = int(date)
+				dates.sort()
+				for date in dates:
 					x_vals.append(datetime.datetime.strptime(str(date), '%Y%m%d'))
 					y_vals.append(float(data[str(date)]['Ending Balance']))
 				plot_data.append({'name':account.get_name(), 'x_vals': x_vals, 'y_vals': y_vals})
