@@ -302,7 +302,7 @@ class FinPlotUI():
 			dates = list()
 			for date in data.keys():
 				dates.append(int(date))
-			#dates.sort()
+			dates.sort()
 			plot_data = {}
 			for date in dates:
 				for prop in data[str(date)]:
