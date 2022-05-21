@@ -210,6 +210,9 @@ class FinPlotUI():
 		try:
 			if not account:
 				account = self.choose_account_ui()
+			if account == self.back_str:
+				self.landing_page()
+				return
 			assert account != None, 'No account chosen'
 			print('\nData Input:')
 			date = input('\nDate: ')
